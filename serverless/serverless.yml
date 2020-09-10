@@ -24,42 +24,19 @@ provider:
   name: aws
   runtime: nodejs12.x
 
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
+  region: ${file(config/config.${self:provider.stage}.json):REGION, 'us-east-1'}
+  stage: ${opt:stage, 'local'}
 
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    SLS_DEBUG: ${file(config/config.${self:provider.stage}.json):SLS_DEBUG, 'false'}
 
 functions:
-  hello:
-    handler: handler.hello
+  search:
+    handler: src/search.handler
+  listener:
+    handler: src/listener.handler
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -101,13 +78,16 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+resources:
+  # Dynamo
+  - ${file(resources/testerUserSurveysDynamoTable.yml)}
+  # Api Gateway authorizer
+  - ${file(resources/apiGatewayAuthorizer.yml)}
+custom:
+  resultsTable: results_${self:provider.stage}
+  # Dynamo
+  dynamodb:
+    stages:
+      - local
+    start:
+      migrate: true

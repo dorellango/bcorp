@@ -1,0 +1,5 @@
+Resources:
+  reminderSQSBudgetCampaign:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ${self:custom.musicSQS}

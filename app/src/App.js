@@ -8,8 +8,8 @@ const App = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
 
-  const clientId = '13a18c88c66b468e8d01405f6fc92c6d'
-  const clientSecret = 'ac445e044c9845e98c7de64d2192285b'
+  const clientId = ''
+  const clientSecret = ''
 
   const params = new URLSearchParams();
   params.append('grant_type', 'client_credentials');
