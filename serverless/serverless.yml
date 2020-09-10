@@ -16,6 +16,12 @@ service: serverless
 #app: your-app-name
 #org: your-org-name
 
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-dynamodb-local
+  - serverless-offline
+  - serverless-dotenv-plugin
+
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"

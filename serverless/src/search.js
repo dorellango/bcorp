@@ -8,6 +8,10 @@ module.exports.hello = async (event, context, callback) => {
 
   try {
 
+    // fetch albumns
+    // fetch artist
+    // send to queue
+
     const { Items, Count } = await getMusicAndAlbums(sub)
 
     console.error(`[✅] Data successfully retrieved. Total ${Count}`)
@@ -34,10 +38,10 @@ const getMusicAndAlbums = (query) => {
   return new Promise((resolve, reject) => {
 
     const params = {
-      KeyConditionExpression: 'PK = :PK and begins_with(PK, :PK)',
+      KeyConditionExpression: 'PK = :PK and begins_with(SK, :SK)',
       ExpressionAttributeValues: {
-        ':PK': `${query}`, // ARTIST#{NAME}
-        ':SK': 'ALBUM#',  // ALBUM#{NAME}#{SONG}
+        ':PK': 'SOURCE#SPOTIFY',
+        ':SK': `NAME#${query}`
       },
       TableName: process.env.USER_SURVEYS_TABLE
     };

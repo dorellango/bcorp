@@ -16,3 +16,12 @@ Resources:
         - AttributeName: "SK"
           KeyType: "RANGE"
       BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
