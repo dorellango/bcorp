@@ -32,11 +32,59 @@ provider:
     REGION: ${self:provider.region}
     SLS_DEBUG: ${file(config/config.${self:provider.stage}.json):SLS_DEBUG, 'false'}
 
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        # Necesary to create cheks/reminders
+        - "dynamodb:DescribeStream"
+        - "dynamodb:ListStreams"
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.resultsTable}
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:Scan"
+        - "dynamodb:Query"
+        - "dynamodb:GetItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:BatchWriteItem"
+      Resource:
+        - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.resultsTable}
+        - arn:aws:dynamodb:${self:provider.region}:#{AWS::AccountId}:table/${self:custom.resultsTable}/index/*
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:GetQueueUrl"
+      Resource:
+        - Fn::GetAtt: [musicKeeperSQS, Arn]
+
 functions:
   search:
     handler: src/search.handler
+    events:
+      - http:
+          path: /awesome-search
+          method: get
+          cors: true
+          # request:
+          #   schema:
+          #     application/json: ${file(schemas/post.json)}
   listener:
     handler: src/listener.handler
+    description: ƛ which read from DB stream and send them to a queue
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [resultsTable, StreamArn]
+  keeper:
+    handler: src/keeper.handler
+    description: ƛ which read from SQS to save the music
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [reminderSQSBudgetCampaign, Arn]
+          batchSize: 1
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -80,11 +128,14 @@ functions:
 # you can add CloudFormation resource templates here
 resources:
   # Dynamo
-  - ${file(resources/testerUserSurveysDynamoTable.yml)}
+  - ${file(resources/resultsTable.yml)}
   # Api Gateway authorizer
-  - ${file(resources/apiGatewayAuthorizer.yml)}
+  - ${file(resources/apiGateway.yml)}
+  # SQS
+  - ${file(resources/sqs.yml)}
 custom:
   resultsTable: results_${self:provider.stage}
+  musicKeeperSQS: music_keeper_${self:provider.stage}
   # Dynamo
   dynamodb:
     stages:

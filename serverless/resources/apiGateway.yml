@@ -1,0 +1,34 @@
+Resources:
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ${self:service}-${self:provider.stage}
+  GatewayResponseBadRequestBody:
+    Type: "AWS::ApiGateway::GatewayResponse"
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      RestApiId:
+        Ref: "ApiGatewayRestApi"
+      ResponseType: BAD_REQUEST_BODY
+      ResponseTemplates:
+        application/json: '{"message": "$context.error.message", "error": "$context.error.validationErrorString"}'
+  GatewayResponseDefault4XX:
+    Type: "AWS::ApiGateway::GatewayResponse"
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      RestApiId:
+        Ref: "ApiGatewayRestApi"
+      ResponseType: DEFAULT_4XX
+  GatewayResponseDefault5XX:
+    Type: "AWS::ApiGateway::GatewayResponse"
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      RestApiId:
+        Ref: "ApiGatewayRestApi"
+      ResponseType: DEFAULT_5XX
